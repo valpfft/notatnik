@@ -1,6 +1,5 @@
 import sqlite3
 import datetime
-import time
 import sys
 
 
@@ -27,11 +26,11 @@ def predicate_history(database, user_id, predicate):
     database.execute('SELECT finished, predicate, object FROM memory  WHERE predicate = ? ',
                      (predicate))
     data = database.fetchall()
-    print data
+    print(data)
 
 def predicate_stats(database, user_id, predicate_arg):
     database.execute('SELECT ')
 
 with  sqlite3.connect('base.db', detect_types = sqlite3.PARSE_DECLTYPES) as database:
     if len(sys.argv) > 1:
-        print fun(database, ' '.join(sys.argv[1:]).decode('utf-8'))
+        print ( fun(database, ' '.join(sys.argv[1:]).decode('utf-8')) )
