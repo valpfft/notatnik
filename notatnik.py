@@ -2,8 +2,9 @@ import sqlite3
 import datetime
 import sys
 import re
+from create_database import create_table
 
-
+create_table()
 
 with  sqlite3.connect('base.db', detect_types=sqlite3.PARSE_DECLTYPES) as database:
     if len(sys.argv) > 1:
