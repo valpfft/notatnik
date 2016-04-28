@@ -8,7 +8,7 @@ create_table()
 
 with  sqlite3.connect('base.db', detect_types=sqlite3.PARSE_DECLTYPES) as database:
     if len(sys.argv) > 1:
-        print(fun(database, ' '.join(sys.argv[1:]).decode('utf-8')))                               #Problem      1.  ( How to slice sys.argv ? cmd + predicate)
+        print(fun(database, ' '.join(sys.argv[1:]).decode('utf-8'))) #Problem      1.  ( How to slice sys.argv ? cmd + predicate)
 
 
 def fun(database, cmd):
@@ -40,4 +40,4 @@ def predicate_stats(database, user_id, predicate_arg):
                      (predicate))
 
 def extract_number(string):
-    return re.findall(r'd+', string)
+    return re.findall(r'\d+', string)
