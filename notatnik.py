@@ -11,7 +11,8 @@ with  sqlite3.connect('base.db', detect_types=sqlite3.PARSE_DECLTYPES) as databa
         print(fun(database, ' '.join(sys.argv[1:]).decode('utf-8'))) #Problem      1.  ( How to slice sys.argv ? cmd + predicate)
 
 
-def fun(database, cmd):
+def fun(database, user_arg):
+
     if cmd in (u'co', u'kto', u'jak', u'gdzie'):
         return predicate_history(database, 0, predicate)
     elif cmd in (u'ile', u'oblicz'):
