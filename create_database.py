@@ -11,5 +11,5 @@ def create_table():
               predicate text not null,
               object text not null,
               num real,
-              finished timestamp not null)''')
+              finished timestamp not null);''')
 conn.commit()
