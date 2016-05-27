@@ -1,46 +1,64 @@
-import sqlite3
+#! /usr/bin/python3
+
+
 import datetime
-import sys
 import re
-from create_database import create_table
+from create_database import conn
+from settings import bot
 
 
-def fun(database, argv):
-    for_slice = [item for item in argv.split(' ')
+def fun(database, bot, update):
+    msg = update.message.text
+    for_slice = [item for item in msg.split(' ')
                  if item != u'Ja' and item != u'?']
     cmd = for_slice.pop(0)
-    predicate = for_slice
-    if cmd in (u'co', u'kto', u'jak', u'gdzie'):
-        return predicate_history(database, 0, predicate)
-    elif cmd2 in (u'ile', u'oblicz'):
-        return predicate_stats(database, 0, predicate)
+    predicate = ' '.join(for_slice)
+    chat_id = update.message.chat_id
+    user_id = update.message.from_user.id
+    if cmd == u'co' and object == u'robiłem':
+        bot.sendMessage(chat_id, prediacte_list(
+            database, user_id).encode('utf-8'))
+    if cmd in (u'co', u'kto', u'jak', u'gdzie',
+               u'przypomni', u'działanie'):
+        bot.sendMessage(chat_id,
+                        predicate_history(database, user_id, predicate))
+    elif cmd in (u'ile', u'oblicz'):
+        bot.sendMessage(chat_id,
+                        predicate_stats(database, user_id, predicate))
     else:
         predicate, num = cmd, extract_number(object)
-        return remember(database, 0, predicate, object, num)
+        bot.sendMessage(
+            chat_id,
+            remember(database, user_id, predicate, object, num))
 
 
 def remember(database, user_id, predicate, object, num):
     database.execute(
         'INSERT INTO memory (user_id, predicate, object, num, finished) '
         'VALUES (?, ?, ?, ?, ?)',
-        (user_id, str(predicate), str(object),
+        (user_id, str(predicate,), str(object),
          num, datetime.datetime.utcnow())
     )
     database.commit()
     return u"Okey"
 
 
+def prediacte_list(database, user_id, predicate):
+    database.execute('''SELECT predicate FROM memory''')
+    print(database.fetchall())
+
+
 def predicate_history(database, user_id, predicate):
     database.execute('''SELECT finished,
                     predicate, object FROM memory  WHERE predicate = ? ''',
-                     (predicate))
-    data = database.fetchall()
-    print(data)
+                     (predicate,))
+    print(database.fetchall())
 
 
 def predicate_stats(database, user_id, predicate):
     database.execute('''SELECT count(predicate), avg(predicate),
-                     object FROM memory WHERE predicate = ? ''', (predicate))
+                     object FROM memory WHERE predicate = ?
+                     GROUP BY object''', (predicate))
     data = database.fetchall()
     print(data)
 
@@ -54,9 +72,13 @@ def extract_number(argument):
         if re.search("[0-9]", num) is None:
             return None
         return int(num)
-create_table()
 
-with sqlite3.connect('base.db',
-                     detect_types=sqlite3.PARSE_DECLTYPES) as database:
-    if len(sys.argv) > 1:
-        print(fun(database, ' '.join(sys.argv[1:])))
+
+with conn:
+    last_update_id = bot.getUpdates()[-1].update_id
+    while True:
+        for update in bot.getUpdates(offset=last_update_id):
+            if last_update_id < update.update_id:
+                if update.message.text:
+                    fun(conn, bot, update)
+                    last_update_id = update.update_id
