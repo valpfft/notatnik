@@ -1,5 +1,9 @@
 TODO:
 ------
-extract_number function
+-correct arguments for sql requests
 
-predicate_stats function
+-test console version
+
+-start to work with python telegram bot api (pip install python-telegram-bot)
+
+-use flask for database management
