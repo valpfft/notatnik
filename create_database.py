@@ -10,7 +10,7 @@ def create_table():
               id integer primary key autoincrement,
               user_id integer not null,
               predicate text not null,
-              object text not null,
+              done text not null,
               num real,
               finished timestamp not null);''')
 conn.commit()
