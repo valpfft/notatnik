@@ -1,7 +1,8 @@
 #! /usr/bin/python3
 import sqlite3
 
-conn = sqlite3.connect('base.db')
+conn = sqlite3.connect(
+    'base.db', detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
 c = conn.cursor()
 
 

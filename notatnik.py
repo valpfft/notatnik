@@ -35,6 +35,7 @@ def fun(database, bot, update):
                         predicate_stats(database,
                                         user_id,
                                         predicate))
+        bot.sendPhoto(chat_id, get_google_chart(database, user_id, predicate))
     else:
         predicate, num = cmd, extract_number(done)
         done = re.sub("\d+", "", done)
@@ -49,7 +50,7 @@ def remember(database, user_id, predicate, done, num):
         'INSERT INTO memory (user_id, predicate, done, num, finished) '
         'VALUES (?, ?, ?, ?, ?)',
         (user_id, str(predicate), str(done),
-         num, datetime.datetime.utcnow())
+         num, datetime.datetime.today())
     )
     database.commit()
     return u"Okey"
@@ -76,8 +77,24 @@ def predicate_stats(database, user_id, predicate):
     c.execute('''SELECT count(predicate), avg(num),
                      done FROM memory WHERE predicate = ?''', (predicate,))
     return '\n'.join([str(predicate) + "\t" + str(elem[0]) + str(u"\t") +
-                      str(u"średnia: ") + str(elem[1]) + "\t" + str(elem[2])
+                      str(u"średnia:\t") + str(elem[1]) + "\t" + str(elem[2])
                       for elem in c.fetchall()])
+
+
+def get_google_chart(database, user_id, predicate):
+    data = database.execute('''SELECT num, finished FROM memory
+                            WHERE user_id=? AND predicate=?
+                            ORDER BY finished''',
+                            (user_id, predicate)).fetchall()
+
+    max_num = max(data, key=lambda m: m[0])[0]
+    values, labels = zip(*[('%d' % (100.0 * num / max_num),
+                            date.strftime('%m.%d')) for num,
+                           date in data])
+
+    return 'http://chart.googleapis.com/chart?' \
+        'cht=bvg&chs=750x250&chd=t:%s&chxl=0:|%s' \
+        '&chxt=x,y&chxr=1,0,%d' % (','.join(values), '|'.join(labels), max_num)
 
 
 def extract_number(argument):
