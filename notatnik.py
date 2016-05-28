@@ -88,10 +88,9 @@ def get_google_chart(database, user_id, predicate):
                             (user_id, predicate)).fetchall()
 
     max_num = max(data, key=lambda m: m[0])[0]
-    values, labels = zip(*[('%d' % (100.0 * num / max_num),
-                            date.strftime('%m.%d')) for num,
-                           date in data])
-
+    v, k = zip(*[('%d' % (100.0 * num / max_num),
+                  date.strftime('%m.%d')) for num,
+                 date in data])
     return 'http://chart.googleapis.com/chart?' \
         'cht=bvg&chs=750x250&chd=t:%s&chxl=0:|%s' \
         '&chxt=x,y&chxr=1,0,%d' % (','.join(values), '|'.join(labels), max_num)
