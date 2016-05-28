@@ -13,8 +13,8 @@ logging.basicConfig(level=logging.DEBUG,
 
 def fun(database, bot, update):
     msg = update.message.text
-    for_slice = [item for item in msg.split(' ')
-                 if item != u'ja' and item != u'?']
+    for_slice = [item.lower() for item in msg.split(' ')
+                 if item.lower() != u'ja' and item.lower() != u'?']
     cmd = for_slice.pop(0)
     done = ' '.join(for_slice)
     predicate = for_slice.pop(0)
@@ -37,6 +37,7 @@ def fun(database, bot, update):
                                         predicate))
     else:
         predicate, num = cmd, extract_number(done)
+        done = re.sub("\d+", "", done)
         bot.sendMessage(
             chat_id,
             remember(database, user_id, predicate,
@@ -56,8 +57,9 @@ def remember(database, user_id, predicate, done, num):
 
 def prediacte_list(database, user_id):
     c = database.cursor()
-    c.execute('''SELECT predicate FROM memory''')
-    return c.fetchall()
+    c.execute('''SELECT finished, predicate FROM memory''')
+    data = '\n'.join([elem[0] + str("\t") + elem[1] for elem in c.fetchall()])
+    return data
 
 
 def predicate_history(database, user_id, predicate):
@@ -65,15 +67,17 @@ def predicate_history(database, user_id, predicate):
     c.execute('''SELECT finished,
                     done FROM memory  WHERE predicate = ? ''',
               (predicate,))
-    return c.fetchall()
+    data = '\n'.join([elem[0] + str("\t") + elem[1] for elem in c.fetchall()])
+    return data
 
 
 def predicate_stats(database, user_id, predicate):
     c = database.cursor()
-    c.execute('''SELECT count(predicate), avg(predicate),
-                     done FROM memory WHERE predicate = ?
-                     GROUP BY done''', (predicate,))
-    return c.fetchall()
+    c.execute('''SELECT count(predicate), avg(num),
+                     done FROM memory WHERE predicate = ?''', (predicate,))
+    return '\n'.join([str(predicate) + "\t" + str(elem[0]) + str(u"\t") +
+                      str(u"średnia: ") + str(elem[1]) + "\t" + str(elem[2])
+                      for elem in c.fetchall()])
 
 
 def extract_number(argument):
