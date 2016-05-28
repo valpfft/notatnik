@@ -24,8 +24,8 @@ def fun(database, bot, update):
     if cmd == u'co' and done == u'robiłem':
         bot.sendMessage(chat_id, prediacte_list(
             database, user_id))
-    if cmd in (u'co', u'kto', u'jak', u'gdzie',
-               u'przypomni', u'działanie'):
+    elif cmd in (u'co', u'kto', u'jak', u'gdzie',
+                 u'przypomni', u'działanie'):
         bot.sendMessage(chat_id,
                         predicate_history(database,
                                           user_id,
@@ -50,7 +50,7 @@ def remember(database, user_id, predicate, done, num):
         'INSERT INTO memory (user_id, predicate, done, num, finished) '
         'VALUES (?, ?, ?, ?, ?)',
         (user_id, str(predicate), str(done),
-         num, datetime.datetime.today())
+         num, datetime.datetime.utcnow())
     )
     database.commit()
     return u"Okey"
@@ -59,8 +59,12 @@ def remember(database, user_id, predicate, done, num):
 def prediacte_list(database, user_id):
     c = database.cursor()
     c.execute('''SELECT finished, predicate FROM memory''')
-    data = '\n'.join([elem[0] + str("\t") + elem[1] for elem in c.fetchall()])
-    return data
+    data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
+                      for elem in c.fetchall()])
+    if data:
+        return data
+    else:
+        return u"Nic nie robiłem =("
 
 
 def predicate_history(database, user_id, predicate):
@@ -68,17 +72,25 @@ def predicate_history(database, user_id, predicate):
     c.execute('''SELECT finished,
                     done FROM memory  WHERE predicate = ? ''',
               (predicate,))
-    data = '\n'.join([elem[0] + str("\t") + elem[1] for elem in c.fetchall()])
-    return data
+    data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
+                      for elem in c.fetchall()])
+    if data:
+        return data
+    else:
+        return u'Nic nie %s =(' % (predicate)
 
 
 def predicate_stats(database, user_id, predicate):
     c = database.cursor()
     c.execute('''SELECT count(predicate), avg(num),
                      done FROM memory WHERE predicate = ?''', (predicate,))
-    return '\n'.join([str(predicate) + "\t" + str(elem[0]) + str(u"\t") +
+    data = '\n'.join([str(predicate) + "\t" + str(elem[0]) + str(u"\t") +
                       str(u"średnia:\t") + str(elem[1]) + "\t" + str(elem[2])
                       for elem in c.fetchall()])
+    if data:
+        return data
+    else:
+        return u'Nie zmierzono %s' % (predicate)
 
 
 def get_google_chart(database, user_id, predicate):
@@ -92,8 +104,8 @@ def get_google_chart(database, user_id, predicate):
                   date.strftime('%m.%d')) for num,
                  date in data])
     return 'http://chart.googleapis.com/chart?' \
-        'cht=bvg&chs=750x250&chd=t:%s&chxl=0:|%s' \
-        '&chxt=x,y&chxr=1,0,%d' % (','.join(values), '|'.join(labels), max_num)
+        'cht=bvg&chs=400x250&chd=t:%s&chxl=0:|%s' \
+        '&chxt=x,y&chxr=2,0,%d' % (','.join(v), '|'.join(k), max_num)
 
 
 def extract_number(argument):
