@@ -35,7 +35,8 @@ def fun(database, bot, update):
                         predicate_stats(database,
                                         user_id,
                                         predicate))
-        bot.sendPhoto(chat_id, get_google_chart(database, user_id, predicate))
+        bot.sendPhoto(chat_id, get_google_chart(
+            database, user_id, predicate))
     else:
         predicate, num = cmd, extract_number(done)
         done = re.sub("\d+", "", done)
@@ -87,10 +88,7 @@ def predicate_stats(database, user_id, predicate):
     data = '\n'.join([str(predicate) + "\t" + str(elem[0]) + str(u"\t") +
                       str(u"średnia:\t") + str(elem[1]) + "\t" + str(elem[2])
                       for elem in c.fetchall()])
-    if data:
-        return data
-    else:
-        return u'Nie zmierzono %s' % (predicate)
+    return data
 
 
 def get_google_chart(database, user_id, predicate):
@@ -98,14 +96,16 @@ def get_google_chart(database, user_id, predicate):
                             WHERE user_id=? AND predicate=?
                             ORDER BY finished''',
                             (user_id, predicate)).fetchall()
-
-    max_num = max(data, key=lambda m: m[0])[0]
-    v, k = zip(*[('%d' % (100.0 * num / max_num),
-                  date.strftime('%m.%d')) for num,
-                 date in data])
-    return 'http://chart.googleapis.com/chart?' \
-        'cht=bvg&chs=400x250&chd=t:%s&chxl=0:|%s' \
-        '&chxt=x,y&chxr=2,0,%d' % (','.join(v), '|'.join(k), max_num)
+    if(len(data)) > 4:
+        max_num = max(data, key=lambda m: m[0])[0]
+        v, k = zip(*[('%d' % (100.0 * num / max_num),
+                      date.strftime('%m.%d')) for num,
+                     date in data])
+        return 'http://chart.googleapis.com/chart?' \
+            'cht=bvg&chs=750x250&chd=t:%s&chxl=0:|%s' \
+            '&chxt=x,y&chxr=1,0,%d' % (','.join(v), '|'.join(k), max_num)
+    else:
+        return 'https://cdn.meme.am/instances/500x/62608723.jpg'
 
 
 def extract_number(argument):
