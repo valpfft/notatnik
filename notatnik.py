@@ -83,10 +83,14 @@ def predicate_history(database, user_id, predicate):
 
 def predicate_stats(database, user_id, predicate):
     c = database.cursor()
-    c.execute('''SELECT count(predicate), avg(num),
+    c.execute('''SELECT count(predicate), avg(num), min(num), max(num),
                      done FROM memory WHERE predicate = ?''', (predicate,))
-    data = '\n'.join([str(predicate) + "\t" + str(elem[0]) + str(u"\t") +
-                      str(u"średnia:\t") + str(elem[1]) + "\t" + str(elem[2])
+    data = '\n'.join([u"Liczba zapisów:\t" + str(predicate) + '\t' +
+                      str(elem[0]) +
+                      str(u"\traz\nśrednia:\t") +
+                      str(elem[1]) + str(elem[4]) +
+                      u"\nOd\t%s do %s" % (str(elem[2]), str(elem[3])) +
+                      str(elem[4])
                       for elem in c.fetchall()])
     return data
 
@@ -94,7 +98,7 @@ def predicate_stats(database, user_id, predicate):
 def get_google_chart(database, user_id, predicate):
     data = database.execute('''SELECT num, finished FROM memory
                             WHERE user_id=? AND predicate=?
-                            ORDER BY finished''',
+                            ORDER BY finished DESC LIMIT 30''',
                             (user_id, predicate)).fetchall()
     if(len(data)) > 4:
         max_num = max(data, key=lambda m: m[0])[0]
@@ -117,8 +121,6 @@ def extract_number(argument):
         if re.search("[0-9]", num) is None:
             return None
         return int(num)
-
-create_table()
 
 with conn:
     last_update_id = bot.getUpdates()[-1].update_id
