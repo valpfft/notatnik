@@ -5,45 +5,51 @@ import datetime
 import re
 from create_database import *
 from settings import *
-
+from common_strings import *
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
 
 
-def fun(database, bot, update):
+def fun(database, bot, update, strings):
+    custom_keyboard = [[u'Co robiłem', u'Pomóc']]
+    reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
+                                                resize_keyboard=True)
     msg = update.message.text
-    for_slice = [item.lower() for item in msg.split(' ')
-                 if item.lower() != u'ja' and item.lower() != u'?']
-    cmd = for_slice.pop(0)
-    done = ' '.join(for_slice)
-    predicate = for_slice.pop(0)
-
     chat_id = update.message.chat_id
     user_id = update.message.from_user.id
-    if cmd == u'co' and done == u'robiłem':
-        bot.sendMessage(chat_id, prediacte_list(
-            database, user_id))
-    elif cmd in (u'co', u'kto', u'jak', u'gdzie',
-                 u'przypomni', u'działanie'):
-        bot.sendMessage(chat_id,
-                        predicate_history(database,
-                                          user_id,
-                                          predicate))
-    elif cmd in (u'ile', u'oblicz'):
-        bot.sendMessage(chat_id,
-                        predicate_stats(database,
-                                        user_id,
-                                        predicate))
-        bot.sendPhoto(chat_id, get_google_chart(
-            database, user_id, predicate))
+    for_slice = [item.lower() for item in msg.split(' ')
+                 if item.lower() != u'ja' and item.lower() != u'?']
+    if(len(for_slice)) < 2:
+        if for_slice[0] in (u'pomóc', u'help', u'/help'):
+            bot.sendMessage(chat_id, HELP, reply_markup=reply_markup)
     else:
-        predicate, num = cmd, extract_number(done)
-        done = re.sub("\d+", "", done)
-        bot.sendMessage(
-            chat_id,
-            remember(database, user_id, predicate,
-                     done, num))
+        cmd = for_slice.pop(0)
+        done = ' '.join(for_slice)
+        predicate = for_slice.pop(0)
+        if cmd == u'co' and done == u'robiłem':
+            bot.sendMessage(chat_id, prediacte_list(
+                database, user_id))
+        elif cmd in (u'co', u'kto', u'jak', u'gdzie',
+                     u'przypomni', u'działanie'):
+            bot.sendMessage(chat_id,
+                            predicate_history(database,
+                                              user_id,
+                                              predicate))
+        elif cmd in (u'ile', u'oblicz'):
+            bot.sendMessage(chat_id,
+                            predicate_stats(database,
+                                            user_id,
+                                            predicate))
+            bot.sendPhoto(chat_id, get_google_chart(
+                database, user_id, predicate))
+        else:
+            predicate, num = cmd, extract_number(done)
+            done = re.sub("\d+", "", done)
+            bot.sendMessage(
+                chat_id,
+                remember(database, user_id, predicate,
+                         done, num))
 
 
 def remember(database, user_id, predicate, done, num):
@@ -59,7 +65,9 @@ def remember(database, user_id, predicate, done, num):
 
 def prediacte_list(database, user_id):
     c = database.cursor()
-    c.execute('''SELECT finished, predicate FROM memory''')
+    c.execute('''SELECT finished, predicate FROM memory WHERE user_id=?
+              ORDER BY finished''',
+              (user_id,))
     data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
                       for elem in c.fetchall()])
     if data:
@@ -71,8 +79,8 @@ def prediacte_list(database, user_id):
 def predicate_history(database, user_id, predicate):
     c = database.cursor()
     c.execute('''SELECT finished,
-                    done FROM memory  WHERE predicate = ? ''',
-              (predicate,))
+                    done FROM memory  WHERE predicate = ? AND user_id=?''',
+              (predicate, user_id))
     data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
                       for elem in c.fetchall()])
     if data:
@@ -84,12 +92,13 @@ def predicate_history(database, user_id, predicate):
 def predicate_stats(database, user_id, predicate):
     c = database.cursor()
     c.execute('''SELECT count(predicate), avg(num), min(num), max(num),
-                     done FROM memory WHERE predicate = ?''', (predicate,))
+                     done FROM memory WHERE predicate = ? AND user_id=?''',
+              (predicate, user_id))
     data = '\n'.join([u"Liczba zapisów:\t" + str(predicate) + '\t' +
                       str(elem[0]) +
                       str(u"\traz\nśrednia:\t") +
-                      str(elem[1]) + str(elem[4]) +
-                      u"\nOd\t%s do %s" % (str(elem[2]), str(elem[3])) +
+                      str(elem[1]) + u"\t" + str(elem[4]) +
+                      u"\t\nOd\t%s do %s\t" % (str(elem[2]), str(elem[3])) +
                       str(elem[4])
                       for elem in c.fetchall()])
     return data
@@ -128,5 +137,5 @@ with conn:
         for update in bot.getUpdates(offset=last_update_id, timeout=10):
             if last_update_id < update.update_id:
                 if update.message.text:
-                    fun(conn, bot, update)
+                    fun(conn, bot, update, HELP)
                     last_update_id = update.update_id
