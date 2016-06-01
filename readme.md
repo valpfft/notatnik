@@ -1,3 +1,6 @@
+
+*Test version of application - https://telegram.me/notatnik_Bot*
+
 TODO:
 ------
 ~~- correct arguments for sql requests~~
