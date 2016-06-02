@@ -132,7 +132,10 @@ def extract_number(argument):
         return int(num)
 
 with conn:
-    last_update_id = bot.getUpdates()[-1].update_id
+    try:
+        last_update_id = bot.getUpdates()[-1].update_id
+    except IndexError:
+        last_update_id = 0
     while True:
         for update in bot.getUpdates(offset=last_update_id, timeout=10):
             if last_update_id < update.update_id:
