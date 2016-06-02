@@ -28,10 +28,13 @@ def face_detection(url_from_argument):
         response = conn.getresponse()
         data = response.read().decode('utf-8')
         json_data = json.loads(data)
-        age = json_data[0]['faceAttributes']['age']
-        gender = json_data[0]['faceAttributes']['gender']
-        smile = json_data[0]['faceAttributes']['smile']
-        return age, gender, smile
+        try:
+            age = json_data[0]['faceAttributes']['age']
+            gender = json_data[0]['faceAttributes']['gender']
+            smile = json_data[0]['faceAttributes']['smile']
+            return age, gender, smile
+        except IndexError:
+            return "No face detected"
         conn.close()
     except Exception as e:
         print("[Errno {0}] {1}".format(e.errno, e.strerror))
