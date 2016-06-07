@@ -15,3 +15,7 @@ TODO:
 
 
 - use flask for database management
+
+- Replace get_Updates method with webhook, but they require ssl. Now try to use self-signed certificate (generate them with: 'openssl req -new -x509 -nodes -newkey rsa:2048 -keyout webhook_cert.key -out webhook_cert.crt -days 365')
+
+- try to host them somewhere. google_appengine is unsuitable, couse they work only with python27. Now i try Heroku.
