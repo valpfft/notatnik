@@ -7,8 +7,6 @@ import re
 from create_database import *
 from settings import *
 from common_strings import *
-from telegram.error import TelegramError, Unauthorized, BadRequest, TimedOut, NetworkError
-
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
 
@@ -132,21 +130,6 @@ def extract_number(argument):
         if re.search("[0-9]", num) is None:
             return None
         return int(num)
-
-
-def error_collback(bot, update, error):
-    try:
-        raise error
-    except Unauthorized:
-        pass
-    except BadRequest:
-        pass
-    except TimedOut:
-        pass
-    except NetworkError:
-        pass
-    except TelegramError:
-        pass
 
 with conn:
     dispatcher.add_error_handler(error_collback)
