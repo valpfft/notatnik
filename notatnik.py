@@ -132,7 +132,6 @@ def extract_number(argument):
         return int(num)
 
 with conn:
-    dispatcher.add_error_handler(error_collback)
     try:
         last_update_id = bot.getUpdates()[-1].update_id
     except IndexError:
