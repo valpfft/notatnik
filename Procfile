@@ -1,1 +1,1 @@
-web: python notatnik.py
+web: python flask_server.py
