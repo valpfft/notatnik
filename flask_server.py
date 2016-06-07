@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 import telegram.ext
-import create_table
-from flask import Flask, g, request
+from create_database import *
+from flask import Flask, request
 from settings import bot, TELEGRAM_TOKEN
 
 HOST = '0.0.0.0'
