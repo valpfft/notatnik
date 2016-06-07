@@ -14,4 +14,5 @@ def create_table():
               done text not null,
               num real,
               finished timestamp not null);''')
+create_table()
 conn.commit()
