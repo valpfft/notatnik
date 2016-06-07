@@ -2,10 +2,12 @@
 
 import logging
 import datetime
+from time import sleep
 import re
 from create_database import *
 from settings import *
 from common_strings import *
+from telegram.error import TelegramError, Unauthorized, BadRequest, TimedOut, NetworkError
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
@@ -131,7 +133,23 @@ def extract_number(argument):
             return None
         return int(num)
 
+
+def error_collback(bot, update, error):
+    try:
+        raise error
+    except Unauthorized:
+        pass
+    except BadRequest:
+        pass
+    except TimedOut:
+        pass
+    except NetworkError:
+        pass
+    except TelegramError:
+        pass
+
 with conn:
+    dispatcher.add_error_handler(error_collback)
     try:
         last_update_id = bot.getUpdates()[-1].update_id
     except IndexError:
@@ -142,3 +160,9 @@ with conn:
                 if update.message.text:
                     fun(conn, bot, update, HELP)
                     last_update_id = update.update_id
+                # if update.message.photo:
+        sleep(3)
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
