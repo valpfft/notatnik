@@ -7,6 +7,7 @@ import re
 from create_database import *
 from settings import *
 from common_strings import *
+from os import environ
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
 
@@ -146,5 +147,6 @@ with conn:
         sleep(3)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0',
+            port=environ.get('PORT', 5000),
+            processes=2)
