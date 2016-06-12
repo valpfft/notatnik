@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 def fun(database, bot, update):
     custom_keyboard = [[u'Co robiłem', u'Pomóc']]
+   #                    [u'Sprawdz wiek na zdjęciu']]
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
                                                 resize_keyboard=True)
     msg = update.message.text
@@ -22,6 +23,9 @@ def fun(database, bot, update):
     if(len(for_slice)) < 2:
         if for_slice[0] in (u'pomóc', u'help', u'/help'):
             bot.sendMessage(chat_id, HELP, reply_markup=reply_markup)
+     #   elif for_slice[0] in (u'image', u'/check_image'):
+      #      if update.message.photo
+
     else:
         cmd = for_slice.pop(0)
         done = ' '.join(for_slice)
@@ -58,7 +62,7 @@ def remember(database, user_id, predicate, done, num):
         (user_id, str(predicate), str(done),
          num, datetime.datetime.utcnow())
     )
-    return u"Okey"
+    return u"Postaram się zapamiętać"
 
 
 def prediacte_list(database, user_id):
@@ -99,23 +103,22 @@ def predicate_stats(database, user_id, predicate):
                       for elem in database.fetchall()])
     return data
 
-# have no idea why they don't wan't to fetchall(). Fix it later, now
-# get_google_chart didn't work.
-
 
 def get_google_chart(database, user_id, predicate):
-    data = database.execute('''SELECT DISTINCT ON (num) num,
+    database.execute('''SELECT DISTINCT ON (finished) num,
                             finished FROM memory
                             WHERE predicate=%s AND user_id=%s''',
-                            (str(predicate), int(user_id)))
+                     (str(predicate), user_id))
+    data = database.fetchall()
+
     if(len(data)) > 4:
         max_num = max(data, key=lambda m: m[0])[0]
         v, k = zip(*[('%d' % (100.0 * num / max_num),
                       date.strftime('%m.%d')) for num,
                      date in data])
         return 'http://chart.googleapis.com/chart?' \
-            'cht=bvg&chs=750x250&chd=t:%s&chxl=0:|%s' \
-            '&chxt=x,y&chxr=1,0,%d' % (','.join(v), '|'.join(k), max_num)
+            'cht=lc&chco=0000FF&chs=500x300&chd=t:%s&chxl=0:|%s' \
+            '&chxt=x,y&chxr=4,0,%d' % (','.join(v), '|'.join(k), max_num)
     else:
         return 'https://cdn.meme.am/instances/500x/62608723.jpg'
 
