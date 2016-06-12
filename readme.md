@@ -25,5 +25,5 @@ A few bugs:
 -----
 - Sometimes, when app run on heroku with gunicorn, they send message twice. I think it something with thred's. Should learn more about it.
 
--After migration from sqlite to Postgre get_google_chart didn't work. *AttributeError: 'NoneType' object has no attribute 'fetchall'*
+~~-After migration from sqlite to Postgre get_google_chart didn't work. *AttributeError: 'NoneType' object has no attribute 'fetchall'*~~
 
