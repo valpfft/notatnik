@@ -1,24 +1,22 @@
-#! /usr/bin/python3
-from flask import Flask
+#! usr/bin/python3
 import logging
 import datetime
-from time import sleep
 import re
-from create_database import *
-from settings import *
-from common_strings import *
-from os import environ
+import telegram
+from common_strings import HELP
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
 
 
-def fun(database, bot, update, strings):
+def fun(database, bot, update):
     custom_keyboard = [[u'Co robiłem', u'Pomóc']]
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
                                                 resize_keyboard=True)
     msg = update.message.text
     chat_id = update.message.chat_id
     user_id = update.message.from_user.id
+    print(user_id)
+    print(type(user_id))
     for_slice = [item.lower() for item in msg.split(' ')
                  if item.lower() != u'ja' and item.lower() != u'?']
     if(len(for_slice)) < 2:
@@ -56,21 +54,19 @@ def fun(database, bot, update, strings):
 def remember(database, user_id, predicate, done, num):
     database.execute(
         'INSERT INTO memory (user_id, predicate, done, num, finished) '
-        'VALUES (?, ?, ?, ?, ?)',
+        'VALUES (%s, %s, %s, %s, %s)',
         (user_id, str(predicate), str(done),
          num, datetime.datetime.utcnow())
     )
-    database.commit()
     return u"Okey"
 
 
 def prediacte_list(database, user_id):
-    c = database.cursor()
-    c.execute('''SELECT finished, predicate FROM memory WHERE user_id=?
+    database.execute('''SELECT finished, predicate FROM memory WHERE user_id=%s
               ORDER BY finished''',
-              (user_id,))
+                     [int(user_id)])
     data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
-                      for elem in c.fetchall()])
+                      for elem in database.fetchall()])
     if data:
         return data
     else:
@@ -78,12 +74,11 @@ def prediacte_list(database, user_id):
 
 
 def predicate_history(database, user_id, predicate):
-    c = database.cursor()
-    c.execute('''SELECT finished,
-                    done FROM memory  WHERE predicate = ? AND user_id=?''',
-              (predicate, user_id))
+    database.execute('''SELECT finished,
+                    done FROM memory  WHERE predicate = %s AND user_id=%s''',
+                     [str(predicate), int(user_id)])
     data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
-                      for elem in c.fetchall()])
+                      for elem in database.fetchall()])
     if data:
         return data
     else:
@@ -91,25 +86,28 @@ def predicate_history(database, user_id, predicate):
 
 
 def predicate_stats(database, user_id, predicate):
-    c = database.cursor()
-    c.execute('''SELECT count(predicate), avg(num), min(num), max(num),
-                     done FROM memory WHERE predicate = ? AND user_id=?''',
-              (predicate, user_id))
+    database.execute('''SELECT count(predicate), avg(num), min(num), max(num),
+                     done FROM memory WHERE predicate = %s AND
+                     user_id=%s GROUP BY done''',
+                     (str(predicate), user_id))
     data = '\n'.join([u"Liczba zapisów:\t" + str(predicate) + '\t' +
                       str(elem[0]) +
                       str(u"\traz\nśrednia:\t") +
                       str(elem[1]) + u"\t" + str(elem[4]) +
                       u"\t\nOd\t%s do %s\t" % (str(elem[2]), str(elem[3])) +
                       str(elem[4])
-                      for elem in c.fetchall()])
+                      for elem in database.fetchall()])
     return data
+
+# have no idea why they don't wan't to fetchall(). Fix it later, now
+# get_google_chart didn't work.
 
 
 def get_google_chart(database, user_id, predicate):
-    data = database.execute('''SELECT num, finished FROM memory
-                            WHERE user_id=? AND predicate=?
-                            ORDER BY finished DESC LIMIT 30''',
-                            (user_id, predicate)).fetchall()
+    data = database.execute('''SELECT DISTINCT ON (num) num,
+                            finished FROM memory
+                            WHERE predicate=%s AND user_id=%s''',
+                            (str(predicate), int(user_id)))
     if(len(data)) > 4:
         max_num = max(data, key=lambda m: m[0])[0]
         v, k = zip(*[('%d' % (100.0 * num / max_num),
@@ -129,24 +127,5 @@ def extract_number(argument):
         return int(num)
     else:
         if re.search("[0-9]", num) is None:
-            return None
+            return 0
         return int(num)
-
-with conn:
-    try:
-        last_update_id = bot.getUpdates()[-1].update_id
-    except IndexError:
-        last_update_id = 0
-    while True:
-        for update in bot.getUpdates(offset=last_update_id, timeout=10):
-            if last_update_id < update.update_id:
-                if update.message.text:
-                    fun(conn, bot, update, HELP)
-                    last_update_id = update.update_id
-                # if update.message.photo:
-        sleep(3)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0',
-            port=environ.get('PORT', 5000),
-            processes=2)
