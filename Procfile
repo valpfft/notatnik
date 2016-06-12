@@ -1,1 +1,1 @@
-web: python notatnik.py
+web: gunicorn server:server.py
