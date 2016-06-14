@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.DEBUG,
 
 def fun(database, bot, update):
     custom_keyboard = [[u'Co robiłem', u'Pomóc']]
-   #                    [u'Sprawdz wiek na zdjęciu']]
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard,
                                                 resize_keyboard=True)
     msg = update.message.text
@@ -23,9 +22,6 @@ def fun(database, bot, update):
     if(len(for_slice)) < 2:
         if for_slice[0] in (u'pomóc', u'help', u'/help'):
             bot.sendMessage(chat_id, HELP, reply_markup=reply_markup)
-     #   elif for_slice[0] in (u'image', u'/check_image'):
-      #      if update.message.photo
-
     else:
         cmd = for_slice.pop(0)
         done = ' '.join(for_slice)
@@ -80,7 +76,7 @@ def prediacte_list(database, user_id):
 def predicate_history(database, user_id, predicate):
     database.execute('''SELECT finished,
                     done FROM memory  WHERE predicate = %s AND user_id=%s''',
-                     [str(predicate), int(user_id)])
+                     [(str(predicate)), int(user_id)])
     data = '\n'.join([str(elem[0]) + str("\t") + elem[1]
                       for elem in database.fetchall()])
     if data:
