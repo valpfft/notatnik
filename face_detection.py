@@ -5,7 +5,6 @@ import urllib.parse
 import urllib.error
 import json
 from settings import face_api_key
-import sys
 
 
 def face_detection(url_from_argument):
@@ -17,7 +16,7 @@ def face_detection(url_from_argument):
     params = urllib.parse.urlencode({
         'returnFaceId': 'false',
         'returnFaceLandmarks': 'false',
-        'returnFaceAttributes': 'age,gender,smile',
+        'returnFaceAttributes': 'age,gender',
     })
     body = {'url': url_from_argument}
     print(body)
@@ -31,11 +30,12 @@ def face_detection(url_from_argument):
         try:
             age = json_data[0]['faceAttributes']['age']
             gender = json_data[0]['faceAttributes']['gender']
-            smile = json_data[0]['faceAttributes']['smile']
-            return age, gender, smile
+            if gender == 'male':
+                return u'Płeć: mężczyzna %s lat' % (age)
+            else:
+                return u'Płeć: kobieta %s lat' % (age)
         except IndexError:
-            return "No face detected"
+            return "Mile, ale nie jest osobą"
         conn.close()
     except Exception as e:
         print("[Errno {0}] {1}".format(e.errno, e.strerror))
-print(face_detection(sys.argv[1]))
