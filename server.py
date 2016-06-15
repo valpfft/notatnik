@@ -1,8 +1,8 @@
 #! usr/bin/python3
 from os import environ
-from flask import Flask, g, request, url_for
+from flask import Flask, url_for, g
 import notatnik
-from settings import bot, updater, dispatcher
+from settings import bot
 from database import create_table, conn, cursor
 from face_detection import face_detection
 

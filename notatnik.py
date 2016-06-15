@@ -4,8 +4,12 @@ import datetime
 import re
 import telegram
 from common_strings import HELP
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
+# logging.basicConfig(level=logging.DEBUG,
+#                   format='%(asctime)s-%(name)s-%(levelname)s-%(message)s')
+
+logger = logging.getLogger()
+# INFO LUB DEBUG
+logger.setLevel(logging.INFO)
 
 
 def fun(database, bot, update):

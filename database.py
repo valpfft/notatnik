@@ -2,9 +2,7 @@ import psycopg2.extras
 import psycopg2
 import dj_database_url
 db_info = dj_database_url.config(
-    default='postgres://nhhfkzrvppmpvl:sT-ng-onnXd_M'
-    '-ddhBFiSUIOaT@ec2-54-228-219-2.eu-west-1.compute.'
-    'amazonaws.com:5432/dcg8hogaee5g8i')
+    default='postgres://nhhfkzrvppmpvl:sT-ng-onnXd_M-ddhBFiSUIOaT@ec2-54-228-219-2.eu-west-1.compute.amazonaws.com:5432/dcg8hogaee5g8i')
 
 conn = psycopg2.connect(
     database=db_info.get('NAME'),

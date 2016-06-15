@@ -35,7 +35,7 @@ def face_detection(url_from_argument):
             else:
                 return u'Płeć: kobieta %s lat' % (age)
         except IndexError:
-            return "Mile, ale nie jest osobą"
+            return u"Miłe, ale nie jest osobą"
         conn.close()
     except Exception as e:
         print("[Errno {0}] {1}".format(e.errno, e.strerror))
